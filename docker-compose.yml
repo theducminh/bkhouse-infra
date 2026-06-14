@@ -8,6 +8,8 @@ services:
     image: ducminh204/bkhouse-backend1:latest
     restart: always
     env_file: .env
+    volumes:
+      - ./fcm.json:/app/fcm.json:ro
     expose: ["7979"]
 
   socket:
