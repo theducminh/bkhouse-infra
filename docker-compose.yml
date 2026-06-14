@@ -1,62 +1,33 @@
-version: '3.8'
-
-networks:
-  bkhouse-network:
-    driver: bridge
-
 services:
-  # 1. API Gateway (Định tuyến giao thông)
-  nginx:
-    image: nginx:alpine
-    container_name: bkhouse-nginx
-    ports:
-      - "80:80"
-    volumes:
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
-    networks:
-      - bkhouse-network
-    depends_on:
-      - frontend
-      - backend
-      - socket
-      - airflow
-
-  # 2. Giao diện người dùng
   frontend:
-    image: ducminh204/bkhouse-frontend:latest
-    container_name: bkhouse-frontend
+    image: ghcr.io/<github-user>/bkhouse-frontend:latest
+    restart: always
     expose: ["80"]
-    networks:
-      - bkhouse-network
-    restart: unless-stopped
 
-  # 3. Luồng xử lý nghiệp vụ chính (API)
   backend:
-    image: ducminh204/bkhouse-backend1:latest
-    container_name: bkhouse-backend
+    image: ghcr.io/<github-user>/bkhouse-backend:latest
+    restart: always
+    env_file: .env
     expose: ["8080"]
-    env_file: [.env]
-    networks:
-      - bkhouse-network
-    restart: unless-stopped
 
-  # 4. Máy chủ Realtime Chat (Socket)
   socket:
-    image: ducminh204/bkhouse-backend2:latest
-    container_name: bkhouse-socket
-    expose: ["${SOCKET_PORT}"] # Lấy động từ file .env
-    env_file: [.env]
-    networks:
-      - bkhouse-network
-    restart: unless-stopped
+    image: ghcr.io/<github-user>/bkhouse-socket:latest
+    restart: always
+    expose: ["3000"]
 
-  # 5. Hệ thống ETL & AI Pipeline
-  airflow:
-    image: ducminh204/bkhouse-airflow:latest
-    container_name: bkhouse-airflow
-    expose: ["8080"]
-    env_file: [.env]
-    networks:
-      - bkhouse-network
-    # Khởi tạo Airflow cơ bản
-    command: bash -c "airflow db migrate && airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com || true && airflow webserver & airflow scheduler"
+  nginx:
+    image: nginx:1.27-alpine
+    restart: always
+    ports: ["80:80", "443:443"]
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./certbot/www:/var/www/certbot:ro
+      - ./certbot/conf:/etc/letsencrypt:ro
+    depends_on: [frontend, backend, socket]
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./certbot/www:/var/www/certbot
+      - ./certbot/conf:/etc/letsencrypt
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done'"
