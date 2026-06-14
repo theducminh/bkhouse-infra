@@ -1,18 +1,19 @@
 services:
   frontend:
-    image: ghcr.io/<github-user>/bkhouse-frontend:latest
+    image: ducminh204/bkhouse-frontend:latest
     restart: always
     expose: ["80"]
 
   backend:
-    image: ghcr.io/<github-user>/bkhouse-backend:latest
+    image: ducminh204/bkhouse-backend1:latest
     restart: always
     env_file: .env
-    expose: ["8080"]
+    expose: ["7979"]
 
   socket:
-    image: ghcr.io/<github-user>/bkhouse-socket:latest
+    image: ducminh204/bkhouse-backend2:latest
     restart: always
+    env_file: .env
     expose: ["3000"]
 
   nginx:
