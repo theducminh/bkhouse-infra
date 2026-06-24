@@ -1,8 +1,8 @@
 name: CD - Deploy to Droplet v2
 on:
-  workflow_run:
-    workflows: ["CI - Build & Push"]
-    types: [completed]
+  push:
+    branches:
+      - main
 jobs:
   deploy:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
