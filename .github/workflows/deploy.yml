@@ -1,4 +1,4 @@
-name: CD - Deploy to Droplet
+name: CD - Deploy to Droplet v2
 on:
   workflow_run:
     workflows: ["CI - Build & Push"]
